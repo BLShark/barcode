@@ -3,7 +3,22 @@
 #include <sstream>
 #include <cmath>
 
-#include "coding_numbers.h"
+#include "barcode_analyzer.h"
+
+auto read_sensors = [](barcode& b1) {
+    std::cout << "\nEnter the data from them: ";
+    std::string line;
+    getline(std::cin, line);
+    std::stringstream ss(line);
+    while (1)
+    {
+        double num;
+        ss >> num;
+        if (!ss)
+            break;
+        b1 << num;
+    }
+};
 
 int main()
 {
@@ -14,19 +29,29 @@ int main()
     std::cin>> sensor_numbers;
     std::cin.ignore();
 
-    std::cout << "\nEnter the data from them: ";
-    std::string line, sensor_data;
-    getline(std::cin, line);
-    std::stringstream ss(line);
-    barcode b1;
-    while (getline(ss, sensor_data, ' ') && sensor_numbers--) {
-        b1<<(std::round(std::stod(sensor_data) + 0.05));
+    std::vector<barcode> barcodes;
+    {
+        barcode b1;
+        read_sensors(b1);
+        barcodes.push_back(b1);
     }
 
     std::cout<<"\nEnter numbers of tests: ";
     uint16_t number_of_tests = 0;
     std::cin>>number_of_tests;
 
-    b1.DecryptBarcode();
+    while (number_of_tests)
+    {
+        barcode b;
+        read_sensors(b);
+        barcodes.emplace_back(b);
+        number_of_tests--;
+    }
+
+    std::cout<<std::endl;
+    for(auto& x : barcodes) {
+        x.DecryptBarcode();
+    }
+
     return 0;
 }

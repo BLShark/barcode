@@ -1,8 +1,7 @@
-#pragma
-#include "coding_numbers.h"
+#include "barcode_analyzer.h"
 #include <iostream>
-#include <sstream>
-
+#include <sstream> //stringstream
+#include <math.h> //fabs
 
 void barcode::DecryptBarcode()
 {
@@ -35,11 +34,24 @@ void barcode::DecryptBarcode()
         {
             //remove last start_stop symbol
             m_result.pop_back();
-            if (CalculateCheckSum())
+            if (AnalyzeResult())
             {
                 PrintResult();
             }
+            else
+            {
+                //try to revert data array
+                //AnalyzeResult();
+            }
         }
+        else
+        {
+            std::cout<<"Barcode truncated. Move the scanner to the left."<<std::endl;
+        }
+    }
+    else
+    {
+        std::cout<<"Barcode truncated. Move the scanner to the right."<<std::endl;
     }
 }
 
@@ -48,7 +60,7 @@ void barcode::operator <<(int data)
     m_data.push_back(data);
 }
 
-std::vector<int>::iterator barcode::FindStartStop()
+std::vector<double>::iterator barcode::FindStartStop()
 {
     std::string start_stop("01010010010");
     for (auto index = m_data.begin(); index + start_stop.size() < m_data.end(); ++index)
@@ -67,7 +79,7 @@ std::vector<int>::iterator barcode::FindStartStop()
     return {};
 }
 
-bool barcode::ParseData(std::vector<int> array, const std::string &byte)
+bool barcode::ParseData(std::vector<double> array, const std::string &byte)
 {
     std::stringstream bit_sequence;
     for (size_t index = 0; index < array.size(); index ++)
@@ -78,7 +90,7 @@ bool barcode::ParseData(std::vector<int> array, const std::string &byte)
     return byte == bit_sequence.str();
 }
 
-bool barcode::CalculateCheckSum()
+bool barcode::AnalyzeResult()
 {
     int C = 0;
     int K = 0;
@@ -119,4 +131,10 @@ void barcode::PrintResult()
         else std::cout<<x;
     }
     std::cout<<std::endl;
+}
+
+bool barcode::approximatelyEqual(float a, float b, float epsilon)
+{
+    //approximatelyEqual(0.19f, 0.55, 0.65)<<endl;
+    return fabs(a - b) <= ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
 }

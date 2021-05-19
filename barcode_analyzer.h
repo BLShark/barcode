@@ -1,5 +1,4 @@
-#ifndef CODING_NUMBERS_H
-#define CODING_NUMBERS_H
+#pragma
 
 #include <vector>
 #include <list>
@@ -25,16 +24,16 @@ static std::vector<std::pair<int, std::string>> coding_table = {
 
 class barcode
 {
-    std::vector<int> m_data;
+    std::vector<double> m_data;
     std::vector<int> m_result;
 public:
     void DecryptBarcode();
     void operator<<(int data);
 private:
-    std::vector<int>::iterator FindStartStop();
-    bool ParseData(std::vector<int> array, const std::string &byte);
-    bool CalculateCheckSum();
+    std::vector<double>::iterator FindStartStop();
+    bool ParseData(std::vector<double> array, const std::string &byte);
+    bool AnalyzeResult();
     void PrintResult();
-};
+    bool approximatelyEqual(float a, float b, float epsilon);
 
-#endif // CODING_NUMBERS_H
+};
