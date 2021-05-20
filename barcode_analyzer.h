@@ -1,39 +1,38 @@
 #pragma
-
 #include <vector>
-#include <list>
-#include <bitset>
+#include <deque>
 
 static constexpr int start_stop = 99;
+using table_number = std::pair<int, std::vector<float>>;
+using container = std::vector<table_number>;
 
-static std::vector<std::pair<int, std::string>> coding_table = {
-    {start_stop , "01010010010"  },
-    {0          , "0101010100"   },
-    {1          , "00101010100"  },
-    {2          , "01001010100"  },
-    {3          , "001001010100" },
-    {4          , "01010010100"  },
-    {5          , "00101001010"  },
-    {6          , "01001001010"  },
-    {7          , "01010100100"  },
-    {8          , "00101010010"  },
-    {9          , "0010101010"   },
-    {10         , "0101001010"   },
-    {start_stop , "01010010010"  },
+static container coding_table2 = {
+    {start_stop,    {0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0    }},
+    {0,             {0, 1, 0, 1, 0, 1, 0, 1, 0, 0       }},
+    {1,             {0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0    }},
+    {2,             {0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0    }},
+    {3,             {0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0 }},
+    {4,             {0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0    }},
+    {5,             {0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0    }},
+    {6,             {0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0    }},
+    {7,             {0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0    }},
+    {8,             {0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0    }},
+    {9,             {0, 0, 1, 0, 1, 0, 1, 0, 1, 0       }},
+    {10,            {0, 1, 0, 1, 0, 0, 1, 0, 1, 0       }},
+    {start_stop,    {0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0    }},
 };
 
 class barcode
 {
-    std::vector<double> m_data;
-    std::vector<int> m_result;
+    std::vector<float> m_data;
+    std::deque<int> m_result;
 public:
     void DecryptBarcode();
-    void operator<<(int data);
+    void operator<<(float data);
 private:
-    std::vector<double>::iterator FindStartStop();
-    bool ParseData(std::vector<double> array, const std::string &byte);
+    bool ParseData(std::vector<float> array, const std::vector<float>& number);
     bool AnalyzeResult();
     void PrintResult();
-    bool approximatelyEqual(float a, float b, float epsilon);
+    bool ApproximatelyEqual(float a, float b, float epsilon);
 
 };

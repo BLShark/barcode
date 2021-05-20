@@ -1,9 +1,12 @@
 #include <iostream>
-#include <list>
 #include <sstream>
-#include <cmath>
-
 #include "barcode_analyzer.h"
+
+//Stanislav Todorov
+//email : stanislav.m.d@icloud.com
+//phone : +359883493131
+//Please contact me if you have a problem with executing the program or just wanna discuss the code. Thank you!
+//I will be appreciated to send me a review by email. Best wishes!
 
 auto read_sensors = [](barcode& b1) {
     std::cout << "\nEnter the data from them: ";
@@ -12,7 +15,7 @@ auto read_sensors = [](barcode& b1) {
     std::stringstream ss(line);
     while (1)
     {
-        double num;
+        float num;
         ss >> num;
         if (!ss)
             break;

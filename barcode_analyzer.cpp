@@ -2,93 +2,88 @@
 #include <iostream>
 #include <sstream> //stringstream
 #include <math.h> //fabs
+#include <algorithm> //for_each
 
 void barcode::DecryptBarcode()
 {
-
-    //Find Start/Stop msg
-    auto index_pos = FindStartStop();
-    if ( index_pos != m_data.end())
-    {
-        //remove front bytes +1 for the empty sector
-        m_data.erase(m_data.begin(), index_pos + 1);
-
-        //now we can find the real data for every number
+    auto decrypt = [this](){
         for(auto index = 0; index < m_data.size(); index++)
         {
-            for(auto number = 1; number < coding_table.size(); number++)
+            for(auto number = 0; number < coding_table2.size(); number++)
             {
-                std::pair<int, std::string> tmp = coding_table.at(number);
-                if (ParseData({m_data.begin(), m_data.begin() + tmp.second.size()} , tmp.second))
+                table_number tmp = coding_table2.at(number);
+                if (ParseData({m_data.begin() + index, m_data.end()}, tmp.second))
                 {
                     //we found the number
-                    m_data.erase(m_data.begin(), m_data.begin() + tmp.second.size() + 1 );
                     m_result.push_back(tmp.first);
+                    index += tmp.second.size();
                     break;
                 }
             }
         }
+    };
 
-        //barcode decryption finished
-        if (m_result.back() == start_stop)
+    decrypt();
+    if (m_result.empty() || m_result.at(0) != start_stop)
+    {
+        //we should reverse numbers from the coding table to cover flipped barcode!
+        for(auto& number : coding_table2)
         {
-            //remove last start_stop symbol
-            m_result.pop_back();
-            if (AnalyzeResult())
-            {
-                PrintResult();
-            }
-            else
-            {
-                //try to revert data array
-                //AnalyzeResult();
-            }
+            std::reverse(number.second.begin(), number.second.end());
+        }
+
+        //again start decrypt with reverse numbers
+        m_result.clear();
+        decrypt();
+        std::reverse(m_result.begin(), m_result.end());
+    }
+
+    if (m_result.front() == start_stop && m_result.back() == start_stop)
+    {
+        //the barcode was read correctly. remove start/stop symbol and analyze result!
+        m_result.pop_back();
+        m_result.pop_front();
+
+        if (AnalyzeResult())
+        {
+            PrintResult();
         }
         else
         {
-            std::cout<<"Barcode truncated. Move the scanner to the left."<<std::endl;
+            std::cout<<"Wrong barcode!!! The checksum is not correct"<<std::endl;
         }
     }
-    else
+    else if (m_result.front() == start_stop)
     {
-        std::cout<<"Barcode truncated. Move the scanner to the right."<<std::endl;
+        std::cout<<"Barcode truncated. Move the scanner to the right." <<std::endl;
+    }
+    else if (m_result.back() == start_stop)
+    {
+        std::cout<<"Barcode truncated. Move the scanner to the left." <<std::endl;
     }
 }
 
-void barcode::operator <<(int data)
+void barcode::operator <<(float data)
 {
     m_data.push_back(data);
 }
 
-std::vector<double>::iterator barcode::FindStartStop()
+bool barcode::ParseData(std::vector<float> array, const std::vector<float> &number)
 {
-    std::string start_stop("01010010010");
-    for (auto index = m_data.begin(); index + start_stop.size() < m_data.end(); ++index)
-    {
-        std::stringstream ss;
-        for (auto i = 0; i < start_stop.size(); i++)
+    bool result = true;
+    for (int var = 0; var < number.size() && var < array.size() ; ++var) {
+        if (ApproximatelyEqual(array.at(var), number.at(var), 0.65f))
         {
-            ss << *(index + i);
+            result &= true;
         }
-        if (start_stop == ss.str())
+        else
         {
-            //we should pop the bytes we found!!!
-            return index + start_stop.size();
+            result &= false;
         }
     }
-    return {};
+    return result;
 }
 
-bool barcode::ParseData(std::vector<double> array, const std::string &byte)
-{
-    std::stringstream bit_sequence;
-    for (size_t index = 0; index < array.size(); index ++)
-    {
-        bit_sequence<< array.at(index);
-    }
-
-    return byte == bit_sequence.str();
-}
 
 bool barcode::AnalyzeResult()
 {
@@ -133,8 +128,11 @@ void barcode::PrintResult()
     std::cout<<std::endl;
 }
 
-bool barcode::approximatelyEqual(float a, float b, float epsilon)
+bool barcode::ApproximatelyEqual(float a, float b, float epsilon)
 {
-    //approximatelyEqual(0.19f, 0.55, 0.65)<<endl;
-    return fabs(a - b) <= ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+    if (fabs(a - b) < epsilon)
+    {
+        return true; // they are same
+    }
+    return false; // they are not same
 }
